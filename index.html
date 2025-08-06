@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summoner Stats</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .stat-card {
+            margin-bottom: 20px;
+        }
+        .match-list-item, .clickable-row {
+            cursor: pointer;
+        }
+        .match-list-item:hover, .clickable-row:hover {
+            background-color: #e9ecef;
+        }
+        .rank-crest {
+            width: 100px;
+            margin: 0 auto;
+            display: block;
+        }
+        .item-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 2px;
+        }
+        .champion-icon {
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+        }
+        .sortable-header {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Summoner Analytics</h1>
+        <div id="loading" class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading all your data...</p>
+        </div>
+        <div id="content" class="d-none">
+            <!-- Player and General Stats -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Player</h5>
+                            <p id="player-name" class="card-text fs-4"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Total Games Analyzed</h5>
+                            <p id="total-games" class="card-text fs-4"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card stat-card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Overall Win Rate</h5>
+                            <p id="win-rate" class="card-text fs-4"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Ranked Stats -->
+            <div class="row" id="ranked-stats">
+                <!-- Ranked info will be populated here -->
+            </div>
+            <!-- Analytics -->
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card stat-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Performance by Role</h5>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Role</th>
+                                        <th>Games</th>
+                                        <th>Win Rate</th>
+                                        <th>Avg. KDA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="role-performance-table">
+                                    <!-- Role stats will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card stat-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Recent 20 Games Trend</h5>
+                            <canvas id="win-loss-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Champion Stats -->
+            <div class="card stat-card">
+                <div class="card-body">
+                    <h5 class="card-title">Champion Performance</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" data-sort="name">Champion <i class="bi bi-sort-alpha-down"></i></th>
+                                    <th class="sortable-header" data-sort="games">Games <i class="bi bi-sort-down"></i></th>
+                                    <th class="sortable-header" data-sort="winRate">Win Rate <i class="bi bi-sort-down"></i></th>
+                                    <th class="sortable-header" data-sort="kda">Avg. KDA <i class="bi bi-sort-down"></i></th>
+                                    <th class="sortable-header" data-sort="masteryLevel">Mastery Level <i class="bi bi-sort-down"></i></th>
+                                    <th class="sortable-header" data-sort="masteryPoints">Mastery Points <i class="bi bi-sort-down"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="champion-stats-table">
+                                <!-- Champion stats will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Match History -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Match History</h5>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <select id="role-filter" class="form-select">
+                                <option value="">All Roles</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="champion-filter" class="form-select">
+                                <option value="">All Champions</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="search-input" class="form-control" placeholder="Search by champion name...">
+                        </div>
+                    </div>
+                     <div class="d-flex justify-content-end">
+                        <button id="clear-filter-btn" class="btn btn-secondary btn-sm">Clear Filters</button>
+                    </div>
+                    <ul id="match-list" class="list-group mt-3">
+                        <!-- Match history will be populated here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Details Modal -->
+    <div class="modal fade" id="match-details-modal" tabindex="-1" aria-labelledby="matchDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="matchDetailsModalLabel">Match Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="match-details-body">
+                    <!-- Match details will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="match_list.js"></script>
+    <script>
+        const MATCHES_DIR = './matches/';
+        const GAME_DATA_DIR = './game-data/';
+        const PLAYER_DATA_DIR = './player-data/';
+
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+        async function main() {
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('content');
+
+            // Fetch all data in parallel
+            const [
+                championData,
+                itemData,
+                gameModes,
+                rankedInfo,
+                championMastery,
+                matches
+            ] = await Promise.all([
+                fetchData(`${GAME_DATA_DIR}champion.json`),
+                fetchData(`${GAME_DATA_DIR}item.json`),
+                fetchData(`${GAME_DATA_DIR}gameModes.json`),
+                fetchData(`${PLAYER_DATA_DIR}rankedInfo.json`),
+                fetchData(`${PLAYER_DATA_DIR}championMastery.json`),
+                Promise.all(matchFiles.map(file => fetchData(`${MATCHES_DIR}${file}`)))
+            ]);
+
+            if (!matches.every(m => m)) {
+                loadingEl.innerHTML = '<p class="text-danger">Error loading match data. Please check the console for details and make sure you are running this from a local web server.</p>';
+                return;
+            }
+            
+            matches.sort((a, b) => b.info.gameCreation - a.info.gameCreation);
+
+            const allPuuids = matches.flatMap(match => match.metadata.participants);
+            const puuidCounts = allPuuids.reduce((acc, puuid) => {
+                acc[puuid] = (acc[puuid] || 0) + 1;
+                return acc;
+            }, {});
+
+            const mainPlayerPuuid = Object.keys(puuidCounts).reduce((a, b) => puuidCounts[a] > puuidCounts[b] ? a : b);
+            
+            let mainPlayerName = '';
+            const playerMatches = matches.map(match => {
+                const playerParticipant = match.info.participants.find(p => p.puuid === mainPlayerPuuid);
+                if (playerParticipant && !mainPlayerName) {
+                    mainPlayerName = playerParticipant.riotIdGameName;
+                }
+                return { match, playerParticipant };
+            }).filter(m => m.playerParticipant);
+
+            // --- Populate UI ---
+            document.getElementById('player-name').textContent = mainPlayerName;
+            document.getElementById('total-games').textContent = playerMatches.length;
+
+            const wins = playerMatches.filter(m => m.playerParticipant.win).length;
+            const winRate = playerMatches.length > 0 ? (wins / playerMatches.length * 100).toFixed(2) : 0;
+            document.getElementById('win-rate').textContent = `${winRate}%`;
+
+            // Ranked Stats
+            if (rankedInfo) {
+                const rankedStatsEl = document.getElementById('ranked-stats');
+                rankedInfo.forEach(queue => {
+                    const queueType = queue.queueType.replace('RANKED_', '').replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                    const rank = `${queue.tier} ${queue.rank}`;
+                    const winLoss = `${queue.wins}W / ${queue.losses}L`;
+                    const rankWinRate = queue.wins + queue.losses > 0 ? ((queue.wins / (queue.wins + queue.losses)) * 100).toFixed(2) : 0;
+
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6';
+                    col.innerHTML = `
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <h5 class="card-title text-center">${queueType}</h5>
+                                <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/unranked.png" class="rank-crest" alt="Rank Crest">
+                                <h6 class="card-subtitle mb-2 text-muted text-center">${rank} - ${queue.leaguePoints} LP</h6>
+                                <p class="card-text text-center">${winLoss} (${rankWinRate}%)</p>
+                            </div>
+                        </div>
+                    `;
+                    rankedStatsEl.appendChild(col);
+                });
+            }
+
+            // Role Performance
+            const roleStats = {};
+            playerMatches.forEach(({ playerParticipant }) => {
+                const role = playerParticipant.teamPosition || 'UNKNOWN';
+                if (!roleStats[role]) {
+                    roleStats[role] = { games: 0, wins: 0, kills: 0, deaths: 0, assists: 0 };
+                }
+                roleStats[role].games++;
+                if (playerParticipant.win) roleStats[role].wins++;
+                roleStats[role].kills += playerParticipant.kills;
+                roleStats[role].deaths += playerParticipant.deaths;
+                roleStats[role].assists += playerParticipant.assists;
+            });
+
+            const rolePerformanceTable = document.getElementById('role-performance-table');
+            const roleFilter = document.getElementById('role-filter');
+            Object.keys(roleStats).sort().forEach(role => {
+                const stats = roleStats[role];
+                const roleWinRate = (stats.wins / stats.games * 100).toFixed(2);
+                const avgKills = (stats.kills / stats.games).toFixed(1);
+                const avgDeaths = (stats.deaths / stats.games).toFixed(1);
+                const avgAssists = (stats.assists / stats.games).toFixed(1);
+                const kda = avgDeaths > 0 ? ((parseFloat(avgKills) + parseFloat(avgAssists)) / avgDeaths).toFixed(2) : 'Perfect';
+
+                const row = document.createElement('tr');
+                row.className = 'clickable-row';
+                row.innerHTML = `
+                    <td>${role}</td>
+                    <td>${stats.games}</td>
+                    <td>${roleWinRate}%</td>
+                    <td>${kda}</td>
+                `;
+                row.addEventListener('click', () => applyFilters({ role: role }));
+                rolePerformanceTable.appendChild(row);
+
+                const option = document.createElement('option');
+                option.value = role;
+                option.textContent = role;
+                roleFilter.appendChild(option);
+            });
+
+            // Recent 20 Games Chart
+            const last20Games = playerMatches.slice(0, 20).reverse();
+            const chartLabels = last20Games.map((g, i) => `Game ${playerMatches.length - 19 + i}`);
+            const chartData = last20Games.map(g => g.playerParticipant.win ? 1 : 0);
+            
+            const ctx = document.getElementById('win-loss-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Win/Loss (1 = Win, 0 = Loss)',
+                        data: chartData,
+                        backgroundColor: (context) => {
+                            const value = context.dataset.data[context.dataIndex];
+                            return value === 1 ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 99, 132, 0.2)';
+                        },
+                        borderColor: (context) => {
+                            const value = context.dataset.data[context.dataIndex];
+                            return value === 1 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)';
+                        },
+                        borderWidth: 1,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return value === 1 ? 'Win' : 'Loss';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+
+            // Champion Stats Table
+            const championStats = {};
+            const championIdMap = new Map(Object.values(championData.data).map(c => [c.key, c]));
+
+            playerMatches.forEach(({ playerParticipant }) => {
+                const champId = playerParticipant.championId;
+                if (!championStats[champId]) {
+                    const champInfo = championIdMap.get(String(champId));
+                    championStats[champId] = { 
+                        id: champId,
+                        name: playerParticipant.championName, 
+                        image: champInfo ? champInfo.image.full : '',
+                        games: 0, 
+                        wins: 0, 
+                        kills: 0, 
+                        deaths: 0, 
+                        assists: 0 
+                    };
+                }
+                championStats[champId].games++;
+                if (playerParticipant.win) championStats[champId].wins++;
+                championStats[champId].kills += playerParticipant.kills;
+                championStats[champId].deaths += playerParticipant.deaths;
+                championStats[champId].assists += playerParticipant.assists;
+            });
+
+            const masteryMap = championMastery ? new Map(championMastery.map(m => [m.championId, { level: m.championLevel, points: m.championPoints }])) : new Map();
+            let championStatsArray = Object.values(championStats);
+            const championFilter = document.getElementById('champion-filter');
+
+            function renderChampionStats(sortKey = 'games', sortOrder = 'desc') {
+                const championStatsTable = document.getElementById('champion-stats-table');
+                championStatsTable.innerHTML = '';
+
+                championStatsArray.sort((a, b) => {
+                    let valA, valB;
+                    if (sortKey === 'name') {
+                        valA = a.name;
+                        valB = b.name;
+                    } else if (sortKey === 'winRate') {
+                        valA = a.wins / a.games;
+                        valB = b.wins / b.games;
+                    } else if (sortKey === 'kda') {
+                        valA = a.deaths > 0 ? (a.kills + a.assists) / a.deaths : Infinity;
+                        valB = b.deaths > 0 ? (b.kills + b.assists) / b.deaths : Infinity;
+                    } else if (sortKey === 'masteryLevel' || sortKey === 'masteryPoints') {
+                        const masteryA = masteryMap.get(a.id) || { level: 0, points: 0 };
+                        const masteryB = masteryMap.get(b.id) || { level: 0, points: 0 };
+                        valA = sortKey === 'masteryLevel' ? masteryA.level : masteryA.points;
+                        valB = sortKey === 'masteryLevel' ? masteryB.level : masteryB.points;
+                    } else {
+                        valA = a[sortKey];
+                        valB = b[sortKey];
+                    }
+
+                    if (typeof valA === 'string') {
+                        return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    return sortOrder === 'asc' ? valA - valB : valB - valA;
+                });
+
+                championStatsArray.forEach(champ => {
+                    const champMastery = masteryMap.get(champ.id);
+                    const champWinRate = (champ.wins / champ.games * 100).toFixed(2);
+                    const avgKills = (champ.kills / champ.games).toFixed(1);
+                    const avgDeaths = (champ.deaths / champ.games).toFixed(1);
+                    const avgAssists = (champ.assists / champ.games).toFixed(1);
+                    const kda = avgDeaths > 0 ? ((parseFloat(avgKills) + parseFloat(avgAssists)) / parseFloat(avgDeaths)).toFixed(2) : 'Perfect';
+                    const champIconUrl = `https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/champion/${champ.image}`;
+
+                    const row = document.createElement('tr');
+                    row.className = 'clickable-row';
+                    row.innerHTML = `
+                        <td><img src="${champIconUrl}" class="champion-icon me-2"> ${champ.name}</td>
+                        <td>${champ.games}</td>
+                        <td>${champWinRate}%</td>
+                        <td>${kda}</td>
+                        <td>${champMastery ? champMastery.level : 'N/A'}</td>
+                        <td>${champMastery ? champMastery.points.toLocaleString() : 'N/A'}</td>
+                    `;
+                    row.addEventListener('click', () => applyFilters({ champion: champ.name }));
+                    championStatsTable.appendChild(row);
+                });
+            }
+
+            document.querySelectorAll('.sortable-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const sortKey = header.dataset.sort;
+                    const currentOrder = header.dataset.order || 'desc';
+                    const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
+                    header.dataset.order = newOrder;
+
+                    document.querySelectorAll('.sortable-header i').forEach(i => i.className = 'bi bi-sort-down');
+                    header.querySelector('i').className = newOrder === 'desc' ? 'bi bi-sort-down' : 'bi bi-sort-up';
+                    if (sortKey === 'name') {
+                        header.querySelector('i').className = newOrder === 'desc' ? 'bi bi-sort-alpha-down' : 'bi bi-sort-alpha-up';
+                    }
+
+                    renderChampionStats(sortKey, newOrder);
+                });
+            });
+            
+            championStatsArray.forEach(champ => {
+                const option = document.createElement('option');
+                option.value = champ.name;
+                option.textContent = champ.name;
+                championFilter.appendChild(option);
+            });
+
+            renderChampionStats();
+
+
+            // Match History List
+            const matchListEl = document.getElementById('match-list');
+            const searchInput = document.getElementById('search-input');
+            const clearFilterBtn = document.getElementById('clear-filter-btn');
+
+            function renderMatchList(filters = {}) {
+                matchListEl.innerHTML = '';
+                let filteredMatches = playerMatches;
+
+                if (filters.champion) {
+                    filteredMatches = filteredMatches.filter(({ playerParticipant }) => playerParticipant.championName.toLowerCase() === filters.champion.toLowerCase());
+                }
+                if (filters.role) {
+                    filteredMatches = filteredMatches.filter(({ playerParticipant }) => (playerParticipant.teamPosition || 'UNKNOWN') === filters.role);
+                }
+                if (filters.search) {
+                    filteredMatches = filteredMatches.filter(({ playerParticipant }) => playerParticipant.championName.toLowerCase().includes(filters.search.toLowerCase()));
+                }
+
+                filteredMatches.forEach(({ match, playerParticipant }) => {
+                    const li = document.createElement('li');
+                    li.className = `list-group-item d-flex justify-content-between align-items-center match-list-item ${playerParticipant.win ? 'list-group-item-success' : 'list-group-item-danger'}`;
+                    li.innerHTML = `
+                        <div>
+                            <strong>${playerParticipant.championName}</strong> (${playerParticipant.teamPosition || 'N/A'})
+                            <small class="d-block">${new Date(match.info.gameCreation).toLocaleString()}</small>
+                        </div>
+                        <div>KDA: ${playerParticipant.kills}/${playerParticipant.deaths}/${playerParticipant.assists}</div>
+                    `;
+                    li.addEventListener('click', () => showMatchDetails(match, mainPlayerPuuid, championData, itemData, gameModes));
+                    matchListEl.appendChild(li);
+                });
+            }
+
+            let currentFilters = {};
+            function applyFilters(newFilters) {
+                currentFilters = { ...currentFilters, ...newFilters };
+                roleFilter.value = currentFilters.role || '';
+                championFilter.value = currentFilters.champion || '';
+                searchInput.value = currentFilters.search || '';
+                renderMatchList(currentFilters);
+            }
+
+            searchInput.addEventListener('input', (e) => applyFilters({ search: e.target.value }));
+            roleFilter.addEventListener('change', (e) => applyFilters({ role: e.target.value }));
+            championFilter.addEventListener('change', (e) => applyFilters({ champion: e.target.value }));
+
+            clearFilterBtn.addEventListener('click', () => {
+                currentFilters = {};
+                applyFilters(currentFilters);
+            });
+
+            renderMatchList();
+
+            loadingEl.classList.add('d-none');
+            contentEl.classList.remove('d-none');
+        }
+
+        function showMatchDetails(match, mainPlayerPuuid, championData, itemData, gameModes) {
+            const modalBody = document.getElementById('match-details-body');
+            const teams = { 100: [], 200: [] };
+            match.info.participants.forEach(p => teams[p.teamId].push(p));
+
+            const gameModeInfo = gameModes.find(gm => gm.gameMode === match.info.gameMode);
+            const modalTitle = document.getElementById('matchDetailsModalLabel');
+            modalTitle.textContent = `Match Details - ${gameModeInfo ? gameModeInfo.description : match.info.gameMode}`;
+
+            const itemVersion = itemData.version;
+            const championVersion = championData.version;
+            const championIdMap = new Map(Object.values(championData.data).map(c => [c.key, c]));
+
+            const getItemUrl = (itemId) => {
+                if (!itemId || !itemData.data[itemId]) return 'https://via.placeholder.com/32';
+                const item = itemData.data[itemId];
+                return `https://ddragon.leagueoflegends.com/cdn/${itemVersion}/img/item/${item.image.full}`;
+            };
+
+            const getChampionIconUrl = (championId) => {
+                const champInfo = championIdMap.get(String(championId));
+                if (!champInfo) return 'https://via.placeholder.com/32';
+                return `https://ddragon.leagueoflegends.com/cdn/${championVersion}/img/champion/${champInfo.image.full}`;
+            }
+
+            const renderTeam = (team) => {
+                return team.map(p => {
+                    const isMainPlayer = p.puuid === mainPlayerPuuid;
+                    const items = [p.item0, p.item1, p.item2, p.item3, p.item4, p.item5, p.item6]
+                                .filter(id => id !== 0)
+                                .map(id => `<img src="${getItemUrl(id)}" class="item-icon" title="${itemData.data[id]?.name || 'Unknown Item'}">`)
+                                .join('');
+                    const champIconUrl = getChampionIconUrl(p.championId);
+
+                    return `
+                        <tr class="${isMainPlayer ? 'table-info' : ''}">
+                            <td><img src="${champIconUrl}" class="champion-icon me-2" alt="${p.championName}">${p.riotIdGameName}</td>
+                            <td>${p.kills}/${p.deaths}/${p.assists}</td>
+                            <td>${p.totalDamageDealtToChampions.toLocaleString()}</td>
+                            <td>${p.goldEarned.toLocaleString()}</td>
+                            <td>${items}</td>
+                        </tr>
+                    `;
+                }).join('');
+            };
+
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h5 class="text-primary">Blue Team ${match.info.teams[0].win ? '(Win)' : ''}</h5>
+                        <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>Player</th><th>KDA</th><th>Damage</th><th>Gold</th><th>Items</th></tr></thead>
+                            <tbody>${renderTeam(teams[100])}</tbody>
+                        </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h5 class="text-danger">Red Team ${match.info.teams[1].win ? '(Win)' : ''}</h5>
+                        <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>Player</th><th>KDA</th><th>Damage</th><th>Gold</th><th>Items</th></tr></thead>
+                            <tbody>${renderTeam(teams[200])}</tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('match-details-modal'));
+            modal.show();
+        }
+
+        main();
+    </script>
+</body>
+</html>
