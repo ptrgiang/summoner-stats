@@ -6,27 +6,54 @@
     <title>Summoner Stats</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAARUVFAACz/wAUFBQAKysrAICAgAD/XgAAAAD/AAD/NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVQAAVVAAAFVVUAVXdQAFVVVVVVd1UAVVRVVVImZQBVREVVUiZlAFVUVVVViFUAVVVRVRWIVQAFVVVVVVVQAAREADAAREAAAAAAAwAAAAAAAAADAAAAAAAAADAAAAAAAAADAAAAAAAAAAMAAAAAD//wAA//8AAOPHAADBgwAAgAEAAIABAACAAQAAgAEAAIABAADAAwAAxuMAAP9/AAD/fwAA/v8AAP3/AAD9/wAA" rel="icon" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #fff;
+            color: #4a5568;
+            font-family: 'Cabinet Grotesk', sans-serif;
         }
         .container {
             margin-top: 20px;
         }
         .stat-card {
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
             margin-bottom: 20px;
+            border-radius: 1rem;
         }
-        .match-list-item, .clickable-row {
+        .list-group-item {
+            background-color: #fff;
+            border-color: #e2e8f0;
+            color: #4a5568;
+        }
+        .list-group-item-success {
+            background-color: #f0fff4 !important;
+            color: #2f855a !important;
+        }
+        .list-group-item-danger {
+            background-color: #fff5f5 !important;
+            color: #c53030 !important;
+        }
+        .clickable-row {
             cursor: pointer;
         }
-        .match-list-item:hover, .clickable-row:hover {
-            background-color: #e9ecef;
+        .list-group-item:hover, .clickable-row:hover {
+            background-color: #edf2f7 !important;
         }
-        .rank-crest {
+        .rank-crest-container {
+            position: relative;
             width: 100px;
+            height: 100px;
             margin: 0 auto;
-            display: block;
+        }
+        .rank-crest, .tier-wing, .wing {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
         .item-icon {
             width: 32px;
@@ -38,8 +65,54 @@
             height: 32px;
             vertical-align: middle;
         }
+        .champion-icon-map {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
         .sortable-header {
             cursor: pointer;
+        }
+        .nav-tabs .nav-link {
+            color: #4a5568;
+            background-color: #fff;
+            border-color: #e2e8f0;
+        }
+        .nav-tabs .nav-link.active {
+            color: #2b6cb0;
+            background-color: #ebf8ff;
+            border-color: #bee3f8;
+        }
+        .table {
+            color: #4a5568;
+        }
+        .table-hover > tbody > tr:hover > * {
+            color: #2d3748;
+            background-color: #edf2f7;
+        }
+        .modal-content {
+            background-color: #fff;
+            color: #4a5568;
+        }
+        .modal-header {
+            border-bottom-color: #e2e8f0;
+        }
+        .btn-close {
+            filter: none;
+        }
+        .form-select, .form-control {
+            background-color: #fff;
+            color: #4a5568;
+            border-color: #e2e8f0;
+        }
+        .form-select:focus, .form-control:focus {
+            background-color: #fff;
+            color: #4a5568;
+            border-color: #a0aec0;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
         }
     </style>
 </head>
@@ -80,89 +153,157 @@
                     </div>
                 </div>
             </div>
-            <!-- Ranked Stats -->
-            <div class="row" id="ranked-stats">
-                <!-- Ranked info will be populated here -->
-            </div>
-            <!-- Analytics -->
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card stat-card">
+             <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="true">Dashboard</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="champion-performance-tab" data-bs-toggle="tab" data-bs-target="#champion-performance" type="button" role="tab" aria-controls="champion-performance" aria-selected="false">Champion Performance</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="match-history-tab" data-bs-toggle="tab" data-bs-target="#match-history" type="button" role="tab" aria-controls="match-history" aria-selected="false">Match History</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="mini-map-tab" data-bs-toggle="tab" data-bs-target="#mini-map" type="button" role="tab" aria-controls="mini-map" aria-selected="false">Mini-map</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                    <div class="row mt-3">
+                        <div class="col-lg-8">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Ranked Stats</h5>
+                                    <div class="row" id="ranked-stats">
+                                        <!-- Ranked info will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Recent 20 Games Trend</h5>
+                                    <canvas id="win-loss-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Gold per Minute (Last 20 Games)</h5>
+                                    <canvas id="gpm-trend-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Role Distribution</h5>
+                                    <canvas id="role-distribution-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Win Rate by Game Type</h5>
+                                    <canvas id="gamemode-winrate-chart"></canvas>
+                                </div>
+                            </div>
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Average Damage Composition</h5>
+                                    <canvas id="damage-composition-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Top 5 Champions by Win Rate</h5>
+                                    <canvas id="top-champs-winrate-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card stat-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Top 5 Champions by KDA</h5>
+                                    <canvas id="top-champs-kda-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="champion-performance" role="tabpanel" aria-labelledby="champion-performance-tab">
+                    <div class="card stat-card mt-3">
                         <div class="card-body">
-                            <h5 class="card-title">Performance by Role</h5>
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Role</th>
-                                        <th>Games</th>
-                                        <th>Win Rate</th>
-                                        <th>Avg. KDA</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="role-performance-table">
-                                    <!-- Role stats will be populated here -->
-                                </tbody>
-                            </table>
+                            <h5 class="card-title">Champion Performance</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="sortable-header" data-sort="name">Champion <i class="bi bi-sort-alpha-down"></i></th>
+                                            <th class="sortable-header" data-sort="games">Games <i class="bi bi-sort-down"></i></th>
+                                            <th class="sortable-header" data-sort="winRate">Win Rate <i class="bi bi-sort-down"></i></th>
+                                            <th class="sortable-header" data-sort="kda">Avg. KDA <i class="bi bi-sort-down"></i></th>
+                                            <th class="sortable-header" data-sort="masteryLevel">Mastery Level <i class="bi bi-sort-down"></i></th>
+                                            <th class="sortable-header" data-sort="masteryPoints">Mastery Points <i class="bi bi-sort-down"></i></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="champion-stats-table">
+                                        <!-- Champion stats will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="card stat-card">
+                <div class="tab-pane fade" id="match-history" role="tabpanel" aria-labelledby="match-history-tab">
+                    <div class="card mt-3">
                         <div class="card-body">
-                            <h5 class="card-title">Recent 20 Games Trend</h5>
-                            <canvas id="win-loss-chart"></canvas>
+                            <h5 class="card-title">Match History</h5>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <select id="role-filter" class="form-select">
+                                        <option value="">All Roles</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <select id="champion-filter" class="form-select">
+                                        <option value="">All Champions</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" id="search-input" class="form-control" placeholder="Search by champion name...">
+                                </div>
+                            </div>
+                             <div class="d-flex justify-content-end">
+                                <button id="clear-filter-btn" class="btn btn-secondary btn-sm">Clear Filters</button>
+                            </div>
+                            <ul id="match-list" class="list-group mt-3">
+                                <!-- Match history will be populated here -->
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- Champion Stats -->
-            <div class="card stat-card">
-                <div class="card-body">
-                    <h5 class="card-title">Champion Performance</h5>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th class="sortable-header" data-sort="name">Champion <i class="bi bi-sort-alpha-down"></i></th>
-                                    <th class="sortable-header" data-sort="games">Games <i class="bi bi-sort-down"></i></th>
-                                    <th class="sortable-header" data-sort="winRate">Win Rate <i class="bi bi-sort-down"></i></th>
-                                    <th class="sortable-header" data-sort="kda">Avg. KDA <i class="bi bi-sort-down"></i></th>
-                                    <th class="sortable-header" data-sort="masteryLevel">Mastery Level <i class="bi bi-sort-down"></i></th>
-                                    <th class="sortable-header" data-sort="masteryPoints">Mastery Points <i class="bi bi-sort-down"></i></th>
-                                </tr>
-                            </thead>
-                            <tbody id="champion-stats-table">
-                                <!-- Champion stats will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <!-- Match History -->
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Match History</h5>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <select id="role-filter" class="form-select">
-                                <option value="">All Roles</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <select id="champion-filter" class="form-select">
-                                <option value="">All Champions</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="text" id="search-input" class="form-control" placeholder="Search by champion name...">
+                <div class="tab-pane fade" id="mini-map" role="tabpanel" aria-labelledby="mini-map-tab">
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-end mb-3">
+                                <select id="mini-map-filter" class="form-select w-auto">
+                                    <option value="199">All Games</option>
+                                    <option value="10">Last 10 Games</option>
+                                    <option value="20">Last 20 Games</option>
+                                    <option value="35">Last 35 Games</option>
+                                    <option value="50">Last 50 Games</option>
+                                </select>
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <div id="mini-map-container" style="position: relative;">
+                                    <img src="mini-map.png" class="img-fluid" alt="Mini-map">
+                                    <div id="mini-map-icons"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                     <div class="d-flex justify-content-end">
-                        <button id="clear-filter-btn" class="btn btn-secondary btn-sm">Clear Filters</button>
-                    </div>
-                    <ul id="match-list" class="list-group mt-3">
-                        <!-- Match history will be populated here -->
-                    </ul>
                 </div>
             </div>
         </div>
@@ -231,6 +372,13 @@
             
             matches.sort((a, b) => b.info.gameCreation - a.info.gameCreation);
 
+            const masteryMap = new Map();
+            if (championMastery) {
+                championMastery.forEach(m => {
+                    masteryMap.set(m.championId, { level: m.championLevel, points: m.championPoints });
+                });
+            }
+
             const allPuuids = matches.flatMap(match => match.metadata.participants);
             const puuidCounts = allPuuids.reduce((acc, puuid) => {
                 acc[puuid] = (acc[puuid] || 0) + 1;
@@ -271,7 +419,11 @@
                         <div class="card stat-card">
                             <div class="card-body">
                                 <h5 class="card-title text-center">${queueType}</h5>
-                                <img src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/unranked.png" class="rank-crest" alt="Rank Crest">
+                                <div class="rank-crest-container" style="position: relative; width: 100px; height: 100px; margin: 0 auto;">
+                                    <img src="./Ranked Emblems Latest/Wings/${queue.tier}.png" class="wing" alt="Wing" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                    <img src="./Ranked Emblems Latest/Rank=${queue.tier}.png" class="rank-crest" alt="Rank Crest" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                    <img src="./Ranked Emblems Latest/Tier Wings/${queue.tier}.png" class="tier-wing" alt="Tier Wing" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                </div>
                                 <h6 class="card-subtitle mb-2 text-muted text-center">${rank} - ${queue.leaguePoints} LP</h6>
                                 <p class="card-text text-center">${winLoss} (${rankWinRate}%)</p>
                             </div>
@@ -295,31 +447,33 @@
                 roleStats[role].assists += playerParticipant.assists;
             });
 
-            const rolePerformanceTable = document.getElementById('role-performance-table');
             const roleFilter = document.getElementById('role-filter');
             Object.keys(roleStats).sort().forEach(role => {
-                const stats = roleStats[role];
-                const roleWinRate = (stats.wins / stats.games * 100).toFixed(2);
-                const avgKills = (stats.kills / stats.games).toFixed(1);
-                const avgDeaths = (stats.deaths / stats.games).toFixed(1);
-                const avgAssists = (stats.assists / stats.games).toFixed(1);
-                const kda = avgDeaths > 0 ? ((parseFloat(avgKills) + parseFloat(avgAssists)) / avgDeaths).toFixed(2) : 'Perfect';
-
-                const row = document.createElement('tr');
-                row.className = 'clickable-row';
-                row.innerHTML = `
-                    <td>${role}</td>
-                    <td>${stats.games}</td>
-                    <td>${roleWinRate}%</td>
-                    <td>${kda}</td>
-                `;
-                row.addEventListener('click', () => applyFilters({ role: role }));
-                rolePerformanceTable.appendChild(row);
-
                 const option = document.createElement('option');
                 option.value = role;
                 option.textContent = role;
                 roleFilter.appendChild(option);
+            });
+
+            // Role Distribution Chart
+            const roleDistCtx = document.getElementById('role-distribution-chart').getContext('2d');
+            new Chart(roleDistCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(roleStats),
+                    datasets: [{
+                        label: 'Games Played',
+                        data: Object.values(roleStats).map(s => s.games),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)'
+                        ]
+                    }]
+                }
             });
 
             // Recent 20 Games Chart
@@ -364,6 +518,82 @@
                 }
             });
 
+            // Gold per Minute Trend
+            const gpmTrendCtx = document.getElementById('gpm-trend-chart').getContext('2d');
+            new Chart(gpmTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: last20Games.map((g, i) => `Game ${playerMatches.length - 19 + i}`),
+                    datasets: [{
+                        label: 'Gold per Minute',
+                        data: last20Games.map(g => g.match.info.gameDuration > 0 ? g.playerParticipant.goldEarned / (g.match.info.gameDuration / 60) : 0),
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        fill: true,
+                    }]
+                }
+            });
+
+            // Win Rate by Game Type
+            const gameModeStats = {};
+            playerMatches.forEach(({ match, playerParticipant }) => {
+                const gameMode = match.info.gameMode;
+                if (!gameModeStats[gameMode]) {
+                    gameModeStats[gameMode] = { games: 0, wins: 0 };
+                }
+                gameModeStats[gameMode].games++;
+                if (playerParticipant.win) {
+                    gameModeStats[gameMode].wins++;
+                }
+            });
+
+            const gamemodeWinrateCtx = document.getElementById('gamemode-winrate-chart').getContext('2d');
+            new Chart(gamemodeWinrateCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(gameModeStats),
+                    datasets: [{
+                        label: 'Win Rate %',
+                        data: Object.values(gameModeStats).map(s => (s.wins / s.games * 100).toFixed(2)),
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Average Damage Composition
+            let totalPhysicalDamage = 0;
+            let totalMagicDamage = 0;
+            let totalTrueDamage = 0;
+            playerMatches.forEach(({ playerParticipant }) => {
+                totalPhysicalDamage += playerParticipant.physicalDamageDealtToChampions;
+                totalMagicDamage += playerParticipant.magicDamageDealtToChampions;
+                totalTrueDamage += playerParticipant.trueDamageDealtToChampions;
+            });
+
+            const damageCompCtx = document.getElementById('damage-composition-chart').getContext('2d');
+            new Chart(damageCompCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Physical Damage', 'Magic Damage', 'True Damage'],
+                    datasets: [{
+                        data: [totalPhysicalDamage, totalMagicDamage, totalTrueDamage],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)'
+                        ]
+                    }]
+                }
+            });
+
 
             // Champion Stats Table
             const championStats = {};
@@ -390,9 +620,168 @@
                 championStats[champId].deaths += playerParticipant.deaths;
                 championStats[champId].assists += playerParticipant.assists;
             });
-
-            const masteryMap = championMastery ? new Map(championMastery.map(m => [m.championId, { level: m.championLevel, points: m.championPoints }])) : new Map();
             let championStatsArray = Object.values(championStats);
+
+            // Top 5 Champs by Win Rate Chart
+            const topChampsByWinRate = [...championStatsArray]
+                .filter(c => c.games >= 5) // Filter for champs with a decent number of games
+                .sort((a, b) => (b.wins / b.games) - (a.wins / a.games))
+                .slice(0, 5);
+
+            const topChampsWinRateCtx = document.getElementById('top-champs-winrate-chart').getContext('2d');
+            new Chart(topChampsWinRateCtx, {
+                type: 'bar',
+                data: {
+                    labels: topChampsByWinRate.map(c => c.name),
+                    datasets: [{
+                        label: 'Win Rate %',
+                        data: topChampsByWinRate.map(c => (c.wins / c.games * 100).toFixed(2)),
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Top 5 Champs by KDA Chart
+            const topChampsByKDA = [...championStatsArray]
+                .filter(c => c.games >= 5)
+                .sort((a, b) => {
+                    const kdaA = a.deaths > 0 ? (a.kills + a.assists) / a.deaths : Infinity;
+                    const kdaB = b.deaths > 0 ? (b.kills + b.assists) / b.deaths : Infinity;
+                    return kdaB - kdaA;
+                })
+                .slice(0, 5);
+
+            const topChampsKdaCtx = document.getElementById('top-champs-kda-chart').getContext('2d');
+            new Chart(topChampsKdaCtx, {
+                type: 'bar',
+                data: {
+                    labels: topChampsByKDA.map(c => c.name),
+                    datasets: [{
+                        label: 'Average KDA',
+                        data: topChampsByKDA.map(c => (c.deaths > 0 ? (c.kills + c.assists) / c.deaths : Infinity).toFixed(2)),
+                        backgroundColor: 'rgba(153, 102, 255, 0.7)'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y'
+                }
+            });
+
+            const miniMapIconsEl = document.getElementById('mini-map-icons');
+            const miniMapFilter = document.getElementById('mini-map-filter');
+            const rolePaths = {
+                blue: {
+                    // Moves from bot-left to top-left
+                    TOP:     { origin: { x: 15, y: 85 }, vector: { x: -5, y: -70 }, spread: 0.8, jitter: 4 },
+
+                    // Covers top-side jungle (upper triangle area near red side)
+                    JUNGLE:  { origin: { x: 45, y: 40 }, radiusX: 12, radiusY: 12 },
+
+                    // Moves from bot-left to mid
+                    MIDDLE:  { origin: { x: 20, y: 80 }, vector: { x: 35, y: -35 }, spread: 1, jitter: 3 },
+
+                    // Moves from bot-left to bot-right
+                    BOTTOM:  { origin: { x: 30, y: 95 }, vector: { x: 50, y: 0 }, spread: 0.7, jitter: 4 },
+                    UTILITY: { origin: { x: 35, y: 95 }, vector: { x: 50, y: 0 }, spread: 0.7, jitter: 4 },
+
+                    // River access: top-left to center
+                    UNKNOWN: { origin: { x: 20, y: 20 }, radiusX: 5, radiusY: 10 }
+                },
+                red: {
+                    // Moves from top-right to top-left
+                    TOP:     { origin: { x: 85, y: 15 }, vector: { x: -70, y: 5 }, spread: 0.8, jitter: 4 },
+
+                    // Covers bot-side jungle (bottom triangle area near blue side)
+                    JUNGLE:  { origin: { x: 55, y: 60 }, radiusX: 12, radiusY: 12 },
+
+                    // Moves from top-right to mid
+                    MIDDLE:  { origin: { x: 80, y: 20 }, vector: { x: -35, y: 35 }, spread: 1, jitter: 3 },
+
+                    // Moves from top-right to bot-right
+                    BOTTOM:  { origin: { x: 95, y: 30 }, vector: { x: 0, y: 50 }, spread: 0.7, jitter: 4 },
+                    UTILITY: { origin: { x: 95, y: 35 }, vector: { x: 0, y: 50 }, spread: 0.7, jitter: 4 },
+
+                    // River access: bot-right to center
+                    UNKNOWN: { origin: { x: 80, y: 80 }, radiusX: 5, radiusY: 10 }
+                }
+            };
+
+            function renderMiniMap(gamesToShow) {
+                miniMapIconsEl.innerHTML = '';
+                const matchesToRender = playerMatches.slice(0, gamesToShow);
+                
+                const matchesByRole = { TOP: [], JUNGLE: [], MIDDLE: [], BOTTOM: [], UTILITY: [], UNKNOWN: [] };
+                matchesToRender.forEach(match => {
+                    const role = match.playerParticipant.teamPosition || 'UNKNOWN';
+                    if (matchesByRole[role]) {
+                        matchesByRole[role].push(match);
+                    }
+                });
+
+                for (const role in matchesByRole) {
+                    const gamesInRole = matchesByRole[role];
+                    if (gamesInRole.length === 0) continue;
+
+                    gamesInRole.forEach((matchData, index) => {
+                        const { playerParticipant } = matchData;
+                        const teamId = playerParticipant.teamId;
+                        const team = teamId === 100 ? 'blue' : 'red';
+                        const pathOrBox = rolePaths[team][role];
+
+                        let posX, posY;
+
+                        if (pathOrBox.vector) { // It's a lane with a vector
+                            const t = gamesInRole.length > 1 ? index / (gamesInRole.length - 1) : 0.5;
+                            posX = pathOrBox.origin.x + t * pathOrBox.vector.x * pathOrBox.spread;
+                            posY = pathOrBox.origin.y + t * pathOrBox.vector.y * pathOrBox.spread;
+
+                            // Add perpendicular jitter
+                            const perpVector = { x: -pathOrBox.vector.y, y: pathOrBox.vector.x };
+                            const norm = Math.sqrt(perpVector.x * perpVector.x + perpVector.y * perpVector.y);
+                            if (norm > 0) {
+                                const normalizedPerp = { x: perpVector.x / norm, y: perpVector.y / norm };
+                                const jitterAmount = (Math.random() - 0.5) * pathOrBox.jitter;
+                                posX += normalizedPerp.x * jitterAmount;
+                                posY += normalizedPerp.y * jitterAmount;
+                            }
+
+                        } else if (pathOrBox.radiusX) { // It's a box (Jungle/Unknown)
+                            posX = pathOrBox.origin.x + (Math.random() - 0.5) * 2 * pathOrBox.radiusX;
+                            posY = pathOrBox.origin.y + (Math.random() - 0.5) * 2 * pathOrBox.radiusY;
+                        }
+
+
+                        const champName = playerParticipant.championName;
+                        const champIconUrl = `https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/champion/${champName}.png`;
+
+                        const icon = document.createElement('img');
+                        icon.src = champIconUrl;
+                        icon.title = `${champName} (${role})`;
+                        icon.className = 'champion-icon-map';
+                        icon.style.left = `${posX}%`;
+                        icon.style.top = `${posY}%`;
+                        icon.style.borderColor = team === 'blue' ? '#007bff' : '#dc3545';
+
+                        miniMapIconsEl.appendChild(icon);
+                    });
+                }
+            }
+
+            miniMapFilter.addEventListener('change', (e) => {
+                renderMiniMap(parseInt(e.target.value, 10));
+            });
+
+            // Initial render
+            renderMiniMap(199);
             const championFilter = document.getElementById('champion-filter');
 
             function renderChampionStats(sortKey = 'games', sortOrder = 'desc') {
