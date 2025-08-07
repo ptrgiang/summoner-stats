@@ -420,9 +420,9 @@
                             <div class="card-body">
                                 <h5 class="card-title text-center">${queueType}</h5>
                                 <div class="rank-crest-container" style="position: relative; width: 100px; height: 100px; margin: 0 auto;">
-                                    <img src="ranked-emblems/wings/${queue.tier}.png" class="wing" alt="Wing" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                                    <img src="ranked-emblems/Rank=${queue.tier}.png" class="rank-crest" alt="Rank Crest" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-                                    <img src="ranked-emblems/tier-wings/${queue.tier}.png" class="tier-wing" alt="Tier Wing" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                    <img src="ranked-emblems/wings/${queue.tier.charAt(0).toUpperCase() + queue.tier.slice(1).toLowerCase()}.png" class="wing" alt="Wing" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                    <img src="ranked-emblems/Rank=${queue.tier.charAt(0).toUpperCase() + queue.tier.slice(1).toLowerCase()}.png" class="rank-crest" alt="Rank Crest" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                                    <img src="ranked-emblems/tier-wings/${queue.tier.charAt(0).toUpperCase() + queue.tier.slice(1).toLowerCase()}.png" class="tier-wing" alt="Tier Wing" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                                 </div>
                                 <h6 class="card-subtitle mb-2 text-muted text-center">${rank} - ${queue.leaguePoints} LP</h6>
                                 <p class="card-text text-center">${winLoss} (${rankWinRate}%)</p>
