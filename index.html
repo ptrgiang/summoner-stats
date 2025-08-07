@@ -680,38 +680,39 @@
             const miniMapFilter = document.getElementById('mini-map-filter');
             const rolePaths = {
                 blue: {
-                    // Moves from bot-left to top-left
-                    TOP:     { origin: { x: 15, y: 85 }, vector: { x: -5, y: -70 }, spread: 0.8, jitter: 4 },
+                    // bot-left to top-left → move up (y ↓), x stays low
+                    TOP:     { origin: { x: 15, y: 85 }, vector: { x: 0, y: -60 }, spread: 0.8, jitter: 4 },
 
-                    // Covers top-side jungle (upper triangle area near red side)
-                    JUNGLE:  { origin: { x: 45, y: 40 }, radiusX: 12, radiusY: 12 },
+                    // top-side jungle → upper triangle near mid/top
+                    JUNGLE:  { origin: { x: 35, y: 40 }, radiusX: 12, radiusY: 12 },
 
-                    // Moves from bot-left to mid
-                    MIDDLE:  { origin: { x: 20, y: 80 }, vector: { x: 35, y: -35 }, spread: 1, jitter: 3 },
+                    // bot-left to center → move up-right
+                    MIDDLE:  { origin: { x: 20, y: 80 }, vector: { x: 30, y: -30 }, spread: 1, jitter: 3 },
 
-                    // Moves from bot-left to bot-right
-                    BOTTOM:  { origin: { x: 30, y: 95 }, vector: { x: 50, y: 0 }, spread: 0.7, jitter: 4 },
-                    UTILITY: { origin: { x: 35, y: 95 }, vector: { x: 50, y: 0 }, spread: 0.7, jitter: 4 },
+                    // bot-left to bot-right → y constant, x increases
+                    BOTTOM:  { origin: { x: 25, y: 95 }, vector: { x: 50, y: 0 }, spread: 0.7, jitter: 4 },
+                    UTILITY: { origin: { x: 30, y: 95 }, vector: { x: 50, y: 0 }, spread: 0.7, jitter: 4 },
 
-                    // River access: top-left to center
-                    UNKNOWN: { origin: { x: 20, y: 20 }, radiusX: 5, radiusY: 10 }
+                    // top-left to center → x and y both increase
+                    UNKNOWN: { origin: { x: 20, y: 20 }, radiusX: 6, radiusY: 10 }
                 },
+
                 red: {
-                    // Moves from top-right to top-left
-                    TOP:     { origin: { x: 85, y: 15 }, vector: { x: -70, y: 5 }, spread: 0.8, jitter: 4 },
+                    // top-right to top-left → y constant, x decreases
+                    TOP:     { origin: { x: 85, y: 15 }, vector: { x: -60, y: 0 }, spread: 0.8, jitter: 4 },
 
-                    // Covers bot-side jungle (bottom triangle area near blue side)
-                    JUNGLE:  { origin: { x: 55, y: 60 }, radiusX: 12, radiusY: 12 },
+                    // bot-side jungle → bottom triangle near mid/bot
+                    JUNGLE:  { origin: { x: 65, y: 60 }, radiusX: 12, radiusY: 12 },
 
-                    // Moves from top-right to mid
-                    MIDDLE:  { origin: { x: 80, y: 20 }, vector: { x: -35, y: 35 }, spread: 1, jitter: 3 },
+                    // top-right to center → x and y decrease
+                    MIDDLE:  { origin: { x: 80, y: 20 }, vector: { x: -30, y: 30 }, spread: 1, jitter: 3 },
 
-                    // Moves from top-right to bot-right
-                    BOTTOM:  { origin: { x: 95, y: 30 }, vector: { x: 0, y: 50 }, spread: 0.7, jitter: 4 },
-                    UTILITY: { origin: { x: 95, y: 35 }, vector: { x: 0, y: 50 }, spread: 0.7, jitter: 4 },
+                    // top-right to bot-right → x constant, y increases
+                    BOTTOM:  { origin: { x: 95, y: 25 }, vector: { x: 0, y: 50 }, spread: 0.7, jitter: 4 },
+                    UTILITY: { origin: { x: 95, y: 30 }, vector: { x: 0, y: 50 }, spread: 0.7, jitter: 4 },
 
-                    // River access: bot-right to center
-                    UNKNOWN: { origin: { x: 80, y: 80 }, radiusX: 5, radiusY: 10 }
+                    // bot-right to center → x and y decrease
+                    UNKNOWN: { origin: { x: 80, y: 80 }, radiusX: 6, radiusY: 10 }
                 }
             };
 
