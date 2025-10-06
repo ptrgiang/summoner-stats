@@ -1,7 +1,25 @@
+# API Keys and sensitive data
 API.txt
-
 .env
+fetch_data/.env
 
-*.py
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
+# Templates
 template.html
+
+# Claude Code
+.claude
+AUDIT_SUMMARY.md
+CLAUDE.md
+index-old.html
+UI_REDESIGN.md
+
+# Large data files (optional - uncomment if not tracking matches)
+# matches/*.json
+# player-data/*.json

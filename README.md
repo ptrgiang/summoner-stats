@@ -38,7 +38,7 @@ This project uses the following dependencies, which are included via CDN:
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/your_username_/your_project_name.git
+   git clone https://github.com/ptrgiang/summoner-stats.git
    ```
 2. Open `index.html` in your browser.
 
